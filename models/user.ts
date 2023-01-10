@@ -95,7 +95,7 @@ const UserModelInit = (sequelize: Sequelize) => {
               '/assets/public/images/uploads/defaultAdmin.png'
             )
           }
-          this.setDataValue('role', role)
+          // this.setDataValue('role', role)
         }
       },
       deluxeToken: {
