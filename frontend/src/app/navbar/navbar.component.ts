@@ -50,7 +50,7 @@ dom.watch()
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
-  })
+})
 export class NavbarComponent implements OnInit {
   public userEmail: string = ''
   public languages: any = []
@@ -62,16 +62,17 @@ export class NavbarComponent implements OnInit {
   public scoreBoardVisible: boolean = false
   public shortKeyLang: string = 'placeholder'
   public itemTotal = 0
+  public searchErr: string
 
   @Output() public sidenavToggle = new EventEmitter()
 
-  constructor (private readonly administrationService: AdministrationService, private readonly challengeService: ChallengeService,
+  constructor(private readonly administrationService: AdministrationService, private readonly challengeService: ChallengeService,
     private readonly configurationService: ConfigurationService, private readonly userService: UserService, private readonly ngZone: NgZone,
     private readonly cookieService: CookieService, private readonly router: Router, private readonly translate: TranslateService,
     private readonly io: SocketIoService, private readonly langService: LanguagesService, private readonly loginGuard: LoginGuard,
     private readonly snackBar: MatSnackBar, private readonly basketService: BasketService) { }
 
-  ngOnInit () {
+  ngOnInit() {
     this.getLanguages()
     this.basketService.getItemTotal().subscribe(x => (this.itemTotal = x))
     this.administrationService.getApplicationVersion().subscribe((version: any) => {
@@ -124,7 +125,7 @@ export class NavbarComponent implements OnInit {
     })
   }
 
-  checkLanguage () {
+  checkLanguage() {
     if (this.cookieService.get('language')) {
       const langKey = this.cookieService.get('language')
       this.translate.use(langKey)
@@ -137,26 +138,34 @@ export class NavbarComponent implements OnInit {
     }
   }
 
-  search (value: string) {
+  search(value: string) {
     if (value) {
-      const queryParams = { queryParams: { q: value } }
-      this.ngZone.run(async () => await this.router.navigate(['/search'], queryParams))
+      const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+      if (specialChars.test(value)) {
+        this.searchErr = "Special Characters are not allowed"
+      } else {
+        const queryParams = { queryParams: { q: value } }
+        this.ngZone.run(async () => await this.router.navigate(['/search'], queryParams))
+      }
     } else {
       this.ngZone.run(async () => await this.router.navigate(['/search']))
     }
   }
+  onCLick() {
+    this.searchErr = null;
+  }
 
-  getUserDetails () {
+  getUserDetails() {
     this.userService.whoAmI().subscribe((user: any) => {
       this.userEmail = user.email
     }, (err) => console.log(err))
   }
 
-  isLoggedIn () {
+  isLoggedIn() {
     return localStorage.getItem('token')
   }
 
-  logout () {
+  logout() {
     this.userService.saveLastLoginIp().subscribe((user: any) => { this.noop() }, (err) => console.log(err))
     localStorage.removeItem('token')
     this.cookieService.remove('token')
@@ -166,7 +175,7 @@ export class NavbarComponent implements OnInit {
     this.ngZone.run(async () => await this.router.navigate(['/']))
   }
 
-  changeLanguage (langKey: string) {
+  changeLanguage(langKey: string) {
     this.translate.use(langKey)
     const expires = new Date()
     expires.setFullYear(expires.getFullYear() + 1)
@@ -184,7 +193,7 @@ export class NavbarComponent implements OnInit {
     }
   }
 
-  getScoreBoardStatus () {
+  getScoreBoardStatus() {
     this.challengeService.find({ name: 'Score Board' }).subscribe((challenges: any) => {
       this.ngZone.run(() => {
         this.scoreBoardVisible = challenges[0].solved
@@ -192,11 +201,11 @@ export class NavbarComponent implements OnInit {
     }, (err) => console.log(err))
   }
 
-  goToProfilePage () {
+  goToProfilePage() {
     window.location.replace(environment.hostServer + '/profile')
   }
 
-  goToDataErasurePage () {
+  goToDataErasurePage() {
     window.location.replace(environment.hostServer + '/dataerasure')
   }
 
@@ -205,16 +214,16 @@ export class NavbarComponent implements OnInit {
   }
 
   // eslint-disable-next-line no-empty,@typescript-eslint/no-empty-function
-  noop () { }
+  noop() { }
 
-  getLanguages () {
+  getLanguages() {
     this.langService.getLanguages().subscribe((res) => {
       this.languages = res
       this.checkLanguage()
     })
   }
 
-  isAccounting () {
+  isAccounting() {
     const payload = this.loginGuard.tokenDecode()
     return payload?.data && payload.data.role === roles.accounting
   }

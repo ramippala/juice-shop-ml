@@ -19,9 +19,11 @@
 
     <span class="fill-remaining-space"></span>
 
-    <mat-search-bar #searchControl id="searchQuery" (onEnter)="search(searchControl.value)"
-                    aria-label="Click to search"></mat-search-bar>
-
+    <mat-search-bar #searchControl id="searchQuery"(click)="onCLick()" (onEnter)="search(searchControl.value)"
+                    aria-label="Click to search">
+                 </mat-search-bar>
+    
+                <span *ngIf="searchErr">{{searchErr}}</span>
     <button [matMenuTriggerFor]="userMenu" mat-button style="vertical-align: middle; height:48px;" class="buttons"
             fxHide.lt-md fxShow aria-label="Show/hide account menu" id="navbarAccount">
       <i class="material-icons">
