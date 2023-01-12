@@ -25,7 +25,7 @@ export enum Status {
   selector: 'app-track-result',
   templateUrl: './track-result.component.html',
   styleUrls: ['./track-result.component.scss']
-  })
+})
 export class TrackResultComponent implements OnInit {
   public displayedColumns = ['product', 'price', 'quantity', 'total price']
   public dataSource = new MatTableDataSource()
@@ -33,28 +33,31 @@ export class TrackResultComponent implements OnInit {
   public results: any = {}
   public status: Status = Status.New
   public Status = Status
-  constructor (private readonly route: ActivatedRoute, private readonly trackOrderService: TrackOrderService, private readonly sanitizer: DomSanitizer) {}
+  constructor(private readonly route: ActivatedRoute, private readonly trackOrderService: TrackOrderService, private readonly sanitizer: DomSanitizer) { }
 
-  ngOnInit () {
+  ngOnInit() {
     this.orderId = this.route.snapshot.queryParams.id
-    this.trackOrderService.find(this.orderId).subscribe((results) => {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      this.results.orderNo = this.sanitizer.bypassSecurityTrustHtml(`<code>${results.data[0].orderId}</code>`)
-      this.results.email = results.data[0].email
-      this.results.totalPrice = results.data[0].totalPrice
-      this.results.products = results.data[0].products
-      this.results.eta = results.data[0].eta !== undefined ? results.data[0].eta : '?'
-      this.results.bonus = results.data[0].bonus
-      this.dataSource.data = this.results.products
-      if (results.data[0].delivered) {
-        this.status = Status.Delivered
-      } else if (this.route.snapshot.data.type) {
-        this.status = Status.New
-      } else if (this.results.eta > 2) {
-        this.status = Status.Packing
-      } else {
-        this.status = Status.Transit
-      }
-    })
+    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+    if (!specialChars.test(this.orderId)) {
+      this.trackOrderService.find(this.orderId).subscribe((results) => {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        this.results.orderNo = this.sanitizer.bypassSecurityTrustHtml(`<code>${results.data[0].orderId}</code>`)
+        this.results.email = results.data[0].email
+        this.results.totalPrice = results.data[0].totalPrice
+        this.results.products = results.data[0].products
+        this.results.eta = results.data[0].eta !== undefined ? results.data[0].eta : '?'
+        this.results.bonus = results.data[0].bonus
+        this.dataSource.data = this.results.products
+        if (results.data[0].delivered) {
+          this.status = Status.Delivered
+        } else if (this.route.snapshot.data.type) {
+          this.status = Status.New
+        } else if (this.results.eta > 2) {
+          this.status = Status.Packing
+        } else {
+          this.status = Status.Transit
+        }
+      })
+    }
   }
 }
