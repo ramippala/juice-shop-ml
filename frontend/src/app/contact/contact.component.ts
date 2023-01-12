@@ -21,10 +21,16 @@ dom.watch()
   selector: 'app-contact',
   templateUrl: './contact.component.html',
   styleUrls: ['./contact.component.scss']
-  })
+})
 export class ContactComponent implements OnInit {
+  nameValidator(control: UntypedFormControl): { [key: string]: boolean } {
+    const nameRegexp: RegExp = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+    if (control.value && nameRegexp.test(control.value)) {
+      return { invalidName: true };
+    }
+  }
   public authorControl: UntypedFormControl = new UntypedFormControl({ value: '', disabled: true }, [])
-  public feedbackControl: UntypedFormControl = new UntypedFormControl('', [Validators.required, Validators.maxLength(160)])
+  public feedbackControl: UntypedFormControl = new UntypedFormControl('', [Validators.required, Validators.maxLength(160), this.nameValidator])
   public captchaControl: UntypedFormControl = new UntypedFormControl('', [Validators.required, Validators.pattern('-?[\\d]*')])
   public userIdControl: UntypedFormControl = new UntypedFormControl('', [])
   public rating: number = 0
@@ -34,10 +40,10 @@ export class ContactComponent implements OnInit {
   public confirmation: any
   public error: any
 
-  constructor (private readonly userService: UserService, private readonly captchaService: CaptchaService, private readonly feedbackService: FeedbackService,
+  constructor(private readonly userService: UserService, private readonly captchaService: CaptchaService, private readonly feedbackService: FeedbackService,
     private readonly formSubmitService: FormSubmitService, private readonly translate: TranslateService, private readonly snackBarHelperService: SnackBarHelperService) { }
 
-  ngOnInit () {
+  ngOnInit() {
     this.userService.whoAmI().subscribe((data: any) => {
       this.feedback = {}
       this.userIdControl.setValue(data.id)
@@ -53,14 +59,15 @@ export class ContactComponent implements OnInit {
     this.formSubmitService.attachEnterKeyHandler('feedback-form', 'submitButton', () => this.save())
   }
 
-  getNewCaptcha () {
+  getNewCaptcha() {
     this.captchaService.getCaptcha().subscribe((data: any) => {
       this.captcha = data.captcha
       this.captchaId = data.captchaId
     }, (err) => err)
   }
 
-  save () {
+  save() {
+    const spChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
     this.feedback.captchaId = this.captchaId
     this.feedback.captcha = this.captchaControl.value
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -92,7 +99,7 @@ export class ContactComponent implements OnInit {
     })
   }
 
-  resetForm () {
+  resetForm() {
     this.authorControl.markAsUntouched()
     this.authorControl.markAsPristine()
     this.authorControl.setValue('')
@@ -105,13 +112,13 @@ export class ContactComponent implements OnInit {
     this.captchaControl.setValue('')
   }
 
-  resetCaptcha () {
+  resetCaptcha() {
     this.captchaControl.markAsUntouched()
     this.captchaControl.markAsPristine()
     this.captchaControl.setValue('')
   }
 
-  formatRating (value: number) {
+  formatRating(value: number) {
     return `${value}★`
   }
 }

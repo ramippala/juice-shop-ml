@@ -29,6 +29,9 @@
         <mat-hint align="end">{{comment.value?.length || 0}}/160</mat-hint>
         <mat-error *ngIf="feedbackControl.invalid && feedbackControl.errors.required" translate>MANDATORY_COMMENT
         </mat-error>
+        <mat-error *ngIf="feedbackControl.hasError('invalidName')">
+          Special characters not allowed!
+      </mat-error>
       </mat-form-field>
 
       <div class="rating-container">
